@@ -803,7 +803,7 @@ running context across :load/:reloads in Intero."
       ;; changed, if the timestamp is less than 1 second.
       (intero-async-call
        'backend
-       ":!sleep 1"))))
+       ":!sleep 0.1"))))
 
 (flycheck-define-generic-checker 'intero
   "A syntax and type checker for Haskell using an Intero worker

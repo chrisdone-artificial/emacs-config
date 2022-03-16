@@ -3206,7 +3206,7 @@ This uses `counsel-ag' with `counsel-ack-base-command' replacing
 
 ;;** `counsel-rg'
 (defcustom counsel-rg-base-command
-  `("rg"
+  `("/Users/chris/.nix-profile/bin/rg"
     "--max-columns" "240"
     "--with-filename"
     "--no-heading"

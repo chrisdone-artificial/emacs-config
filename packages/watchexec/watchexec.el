@@ -59,7 +59,7 @@ buffer followed by hitting the RET key."
           (start-process
            "watchexec"
            buffer
-           "watchexec"
+           "/Users/chris/.nix-profile/bin/watchexec"
            "--no-shell"
            "--exts"
            watchexec-extensions

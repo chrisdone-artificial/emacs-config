@@ -1460,16 +1460,12 @@ stack's default)."
                         stack-yaml
                       (buffer-local-value 'intero-stack-yaml backend-buffer)))
         (arguments (intero-make-options-list
-                    "ghci"
+                    "repl"
                     (or targets
                         (let ((package-name (buffer-local-value 'intero-package-name
                                                                 backend-buffer)))
                           (unless (equal "" package-name)
-                            (list package-name))))
-                    (buffer-local-value 'intero-repl-no-build backend-buffer)
-                    (buffer-local-value 'intero-repl-no-load backend-buffer)
-                    nil
-                    stack-yaml)))
+                            (list package-name)))))))
     (insert (propertize
              (format "Starting:\n  %s ghci %s\n" intero-stack-executable
                      (combine-and-quote-strings arguments))
@@ -1494,21 +1490,27 @@ stack's default)."
               (intero-localize-path (intero-buffer-file-name)))))
       (let ((process
              (get-buffer-process
-              (apply #'make-comint-in-buffer "intero" (current-buffer) "docker"  nil
+              (apply #'make-comint-in-buffer "intero" (current-buffer) "/Users/chris/.local/bin/envy"  nil
                      "exec"
-                     "-i"
                      (intero-get-docker-container)
-                     intero-stack-executable
-                     "ghci"
-                     (append arguments
-                             (list "--verbosity" "silent")
-                             (list "--ghci-options"
-                                   (concat "-ghci-script=" script))
-                             (cl-mapcan (lambda (x) (list "--ghci-options" x)) intero-extra-ghci-options))))))
+                     (intero-tool)
+                     "repl"
+                     ;; (append arguments
+                     ;;         (list "--verbosity" "silent")
+                     ;;         (list "--ghci-options"
+                     ;;               (concat "-ghci-script=" script))
+                     ;;         (cl-mapcan (lambda (x) (list "--ghci-options" x)) intero-extra-ghci-options))
+                     ))))
         (when (process-live-p process)
           (set-process-query-on-exit-flag process nil)
           (message "Started Intero process for REPL.")
           (kill-buffer script-buffer))))))
+
+(defun intero-tool ()
+  (replace-regexp-in-string
+   "\n$" ""
+   (let ((default-directory (intero-project-root)))
+     (shell-command-to-string "cat .intero"))))
 
 (defun intero-repl-options (backend-buffer)
   "Open an option menu to set options used when starting the REPL.
@@ -2108,8 +2110,8 @@ INFILE, DESTINATION, DISPLAY and ARGS are as for
 'call-process'/'process-file'.  Provides TRAMP compatibility for
 'call-process'; when the 'default-directory' is on a remote
 machine, PROGRAM is launched on that machine."
-  (let ((process-args (append (list "docker" infile destination display)
-                              (append (list "exec" "-i" (intero-get-docker-container) program)
+  (let ((process-args (append (list "/Users/chris/.local/bin/envy" infile destination display)
+                              (append (list "exec" (intero-get-docker-container) program)
                                       args))))
     (apply 'process-file process-args)))
 
@@ -2389,7 +2391,8 @@ Uses the default stack config file, or STACK-YAML file if given."
     (let* ((process-info (intero-start-piped-process buffer targets stack-yaml))
            (arguments (plist-get process-info :arguments))
            (options (plist-get process-info :options))
-           (process (plist-get process-info :process)))
+           (process (plist-get process-info :process))
+           (docker-container intero-docker-container))
       (set-process-query-on-exit-flag process nil)
       (process-send-string process ":set -fobject-code\n")
       (process-send-string process (format ":set -DSTACK_ROOT=%s\n" (intero-project-root)))
@@ -2399,6 +2402,8 @@ Uses the default stack config file, or STACK-YAML file if given."
       (process-send-string process ":set prompt \"\\4\"\n")
       (with-current-buffer buffer
         (erase-buffer)
+        (when docker-container
+          (setq intero-docker-container docker-container))
         (when stack-yaml
           (setq intero-stack-yaml stack-yaml))
         (setq intero-targets targets)
@@ -2462,25 +2467,26 @@ Uses the default stack config file, or STACK-YAML file if given."
 Uses the specified TARGETS if supplied.
 Uses the default stack config file, or STACK-YAML file if given."
   (let* ((options
-          (intero-make-options-list
-           (intero-executable-path stack-yaml)
-           (or targets
-               (let ((package-name (buffer-local-value 'intero-package-name buffer)))
-                 (unless (equal "" package-name)
-                   (list package-name))))
-           (not (buffer-local-value 'intero-try-with-build buffer))
-           t          ;; pass --no-load to stack
-           t          ;; pass -ignore-dot-ghci to intero
-           stack-yaml ;; let stack choose a default when nil
-           ))
-         (arguments (cons "ghci" options))
+          ;; (intero-make-options-list
+          ;;  (intero-executable-path stack-yaml)
+          ;;  (or targets
+          ;;      (let ((package-name (buffer-local-value 'intero-package-name buffer)))
+          ;;        (unless (equal "" package-name)
+          ;;          (list package-name))))
+          ;;  (not (buffer-local-value 'intero-try-with-build buffer))
+          ;;  t          ;; pass --no-load to stack
+          ;;  t          ;; pass -ignore-dot-ghci to intero
+          ;;  stack-yaml ;; let stack choose a default when nil
+          ;;  )
+          )
+         (arguments (cons "repl" options))
          (process
           (with-current-buffer buffer
             (when intero-debug
               (message "Intero arguments: %s" (combine-and-quote-strings arguments)))
             (message "Booting up intero ...")
             (setenv "INTERO" "1")
-            (apply #'intero-start-file-process intero-stack-executable buffer intero-stack-executable
+            (apply #'intero-start-file-process "mycabal" buffer (intero-tool)
                    arguments))))
     (list :arguments arguments
           :options options
@@ -2490,9 +2496,9 @@ Uses the default stack config file, or STACK-YAML file if given."
   (apply #'start-file-process
          name
          buffer
-         "docker"
+         "/Users/chris/.local/bin/envy"
          (append
-          (list "exec" "-i" (intero-get-docker-container) program)
+          (list "exec" (intero-get-docker-container) program)
           program-args)))
 
 (defun intero-flycheck-buffer ()
@@ -3815,7 +3821,19 @@ If CURRENT, highlight the span uniquely."
 (defun intero-get-docker-container ()
   (or intero-docker-container
       (setq intero-docker-container
-            (completing-read "Container: " (list)))))
+            ;; This is super hacky, but I don't have a type checker to
+            ;; tell me why intero-docker-container is nil.
+            (if (string-match "^ intero:backend:\\(.*?\\) " (buffer-name))
+                (match-string 1 (buffer-name))
+                (completing-read (format "Container [%s %s]: "
+                                         (buffer-name)
+                                         intero-docker-container)
+                                 (list))))))
+
+(defun intero-interrupt ()
+  "Send C-c interrupt to the process."
+  (interactive)
+  (interrupt-process (intero-process 'backend)))
 
 (provide 'intero)
 

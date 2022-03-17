@@ -3821,14 +3821,7 @@ If CURRENT, highlight the span uniquely."
 (defun intero-get-docker-container ()
   (or intero-docker-container
       (setq intero-docker-container
-            ;; This is super hacky, but I don't have a type checker to
-            ;; tell me why intero-docker-container is nil.
-            (if (string-match "^ intero:backend:\\(.*?\\) " (buffer-name))
-                (match-string 1 (buffer-name))
-                (completing-read (format "Container [%s %s]: "
-                                         (buffer-name)
-                                         intero-docker-container)
-                                 (list))))))
+            (completing-read "Container: "))))
 
 (defun intero-interrupt ()
   "Send C-c interrupt to the process."

@@ -3821,7 +3821,7 @@ If CURRENT, highlight the span uniquely."
 (defun intero-get-docker-container ()
   (or intero-docker-container
       (setq intero-docker-container
-            (completing-read "Container: "))))
+            (completing-read "Container: " (list)))))
 
 (defun intero-interrupt ()
   "Send C-c interrupt to the process."

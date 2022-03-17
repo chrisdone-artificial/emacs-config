@@ -2434,6 +2434,8 @@ Uses the default stack config file, or STACK-YAML file if given."
        (lambda (process string)
          (when intero-debug
            (message "[Intero] <- %s" string))
+         (when (string-match "^\\(\\[[0-9]+ of [0-9]+\\] Compiling .*?\\) " string)
+           (run-with-idle-timer 3 nil (lambda (msg) (message "%s" msg)) (match-string 1 string)))
          (when (buffer-live-p (process-buffer process))
            (with-current-buffer (process-buffer process)
              (goto-char (point-max))
@@ -2455,7 +2457,7 @@ Uses the default stack config file, or STACK-YAML file if given."
              (save-excursion
                (goto-char (point-max))
                (when (re-search-backward "\\[[0-9]+ of [0-9]+\\] Compiling [^ ]+"
-                                    nil t 1)
+                                         nil t 1)
                  ;; (message "Intero: %s" (match-string 0))
                  ))
              (intero-read-buffer)))))

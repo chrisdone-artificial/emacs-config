@@ -132,6 +132,8 @@
   (let* ((locations (hiedb-call-by-point 'hiedb-point-defs))
          (location (car locations)))
     (when location
+      (when (fboundp 'xref-push-marker-stack) ;; Emacs 25
+        (xref-push-marker-stack))
       (find-file (hiedb-module-filepath (plist-get location :module)))
       (goto-char (point-min))
       (forward-line (1- (plist-get location :line)))

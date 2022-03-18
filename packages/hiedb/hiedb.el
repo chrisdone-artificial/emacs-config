@@ -51,7 +51,7 @@
                                 (list "-D" hiedb-file)
                                 args))
           (0 (with-current-buffer out-buffer (buffer-string)))
-          (t (signal 'hiedb-error (with-current-buffer out-buffer (buffer-string)))))))))
+          (t (error "hiedb error: %s" (with-current-buffer out-buffer (buffer-string)))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; RPC calls
@@ -69,6 +69,30 @@
                                            :column (1- (string-to-number (match-string 3 line))))))
                                  lines))))
     locations))
+
+(defun hiedb-point-refs (module line column)
+  "Get references of the identifier at the given location."
+  (let* ((output (hiedb-call "point-refs" module (number-to-string line) (number-to-string column)))
+         (lines (split-string output "\n" t))
+         (locations
+          (remove-if-not #'identity
+                         (mapcar (lambda (line)
+                                   (when (string-match "^\\([A-Za-z_'0-9.]+\\):\\([0-9]+\\):\\([0-9]+\\)-\\([0-9]+\\):\\([0-9]+\\)" line)
+                                     (list :module (match-string 1 line)
+                                           :line (string-to-number (match-string 2 line))
+                                           :column (1- (string-to-number (match-string 3 line)))
+                                           :end-line (string-to-number (match-string 4 line))
+                                           :end-column (1- (string-to-number (match-string 5 line))))))
+                                 lines))))
+    locations))
+
+(defun hiedb-point-types (module line column)
+  "Get types of the identifier at the given location."
+  (mapconcat #'identity
+             (split-string (hiedb-call "point-types" module (number-to-string line) (number-to-string column))
+                           "\n"
+                           t)
+             "\n"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Utils
@@ -102,5 +126,12 @@
       (goto-line (plist-get location :line))
       (goto-char (line-beginning-position))
       (forward-char (plist-get location :column)))))
+
+(defun hiedb-show-type ()
+  "Show type of thing at point."
+  (interactive)
+  (let ((types (hiedb-call-by-point 'hiedb-point-types)))
+    (when types
+      (message "%s" types))))
 
 (provide 'hiedb)

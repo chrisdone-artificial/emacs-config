@@ -856,4 +856,42 @@ preserved, although placement may be funky."
       (call-interactively 'hindent-reformat-decl-via)
     (call-interactively 'hindent-reformat-decl)))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; This code integrates the trivial hiedb.el with intero.el
+;;
+;; The final aim would be to move intero's code for highlighting uses
+;; and pretty printing into hiedb, perhaps. But it's nice that
+;; hiedb.el is so trivial.
+;;
+
 (define-key intero-mode-map (kbd "M-.") 'hiedb-goto-def)
+(define-key intero-mode-map (kbd "C-c C-t") 'my-hiedb-intero-show-type)
+(define-key intero-mode-map (kbd "C-?") 'my-hiedb-intero-uses-at)
+(defun my-hiedb-intero-show-type ()
+  (interactive)
+  (message
+   "%s" (intero-fontify-expression (hiedb-call-by-point 'hiedb-point-types))))
+
+(defun my-hiedb-intero-uses-at ()
+  (interactive)
+  (let ((highlighted nil)
+        (thing (intero-thing-at-point)))
+    (cl-loop
+     for use in (hiedb-call-by-point 'hiedb-point-refs)
+     do (let ((loaded-file (hiedb-module-filepath (plist-get use :module)))
+              (start (save-excursion (goto-char (point-min))
+                                     (forward-line (1- (plist-get use :line)))
+                                     (forward-char (plist-get use :column))
+                                     (point))))
+          (message "place: %s" loaded-file)
+          (when (string= loaded-file (buffer-file-name (current-buffer)))
+            (unless highlighted
+              (intero-highlight-uses-mode))
+            (setq highlighted t)
+            (intero-highlight-uses-mode-highlight
+             start
+             (save-excursion (goto-char (point-min))
+                             (forward-line (1- (plist-get use :end-line)))
+                             (forward-char (plist-get use :end-column))
+                             (point))
+             (= start (car thing))))))))

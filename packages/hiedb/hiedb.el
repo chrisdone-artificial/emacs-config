@@ -1,0 +1,106 @@
+;;; hiedb.el ---
+
+;; Copyright (c) 2022 Chris Done. All rights reserved.
+
+;; This file is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 3, or (at your option)
+;; any later version.
+
+;; This file is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+;;; Code:
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Config
+
+(defcustom hiedb-bin
+  "/Users/chris/.cabal/bin/hiedb"
+  "The binary path.")
+
+(defcustom hiedb-file
+  "/Users/chris/Work/artificialio/brossa/brossa/.hie-db"
+  "Path to the database.")
+
+(defcustom hiedb-root
+  "/Users/chris/Work/artificialio/brossa/brossa/src"
+  "The root directory of the source code.")
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Basic RPC call infra
+
+(defun hiedb-call (&rest args)
+  "Call hiedb with the given args, returning a string of the output."
+  (let ((bin hiedb-bin)
+        (file hiedb-file)
+        (in-file nil)
+        (display nil))
+    (with-temp-buffer
+      (let ((out-buffer (current-buffer)))
+        (cl-case (apply #'call-process
+                        (append (list bin
+                                      in-file
+                                      out-buffer
+                                      display)
+                                (list "-D" hiedb-file)
+                                args))
+          (0 (with-current-buffer out-buffer (buffer-string)))
+          (t (signal 'hiedb-error (with-current-buffer out-buffer (buffer-string)))))))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; RPC calls
+
+(defun hiedb-point-defs (module line column)
+  "Get definitions of the identifier at the given location."
+  (let* ((output (hiedb-call "point-defs" module (number-to-string line) (number-to-string column)))
+         (lines (split-string output "\n" t))
+         (locations
+          (remove-if-not #'identity
+                         (mapcar (lambda (line)
+                                   (when (string-match "^\\([A-Za-z_'0-9.]+\\):\\([0-9]+\\):\\([0-9]+\\)" line)
+                                     (list :module (match-string 1 line)
+                                           :line (string-to-number (match-string 2 line))
+                                           :column (1- (string-to-number (match-string 3 line))))))
+                                 lines))))
+    locations))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Utils
+
+(defun hiedb-call-by-point (func)
+  "Call (FUNC module line colunn) given the current point in the current buffer."
+  (let ((line (line-number-at-pos))
+        ;; Columns in hiedb are 1-indexed. Emacs are 0-indexed.
+        (column (1+ (current-column))))
+    (apply func
+           (list (haskell-guess-module-name)
+                 line
+                 column))))
+
+(defun hiedb-module-filepath (module)
+  "Get the filepath of MODULE."
+  (format "%s/%s.hs"
+          hiedb-root
+          (replace-regexp-in-string "\\." "/" module)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Commands
+
+(defun hiedb-goto-def ()
+  "Jump to the definition of thing at point."
+  (interactive)
+  (let* ((locations (hiedb-call-by-point 'hiedb-point-defs))
+         (location (car locations)))
+    (when location
+      (find-file (hiedb-module-filepath (plist-get location :module)))
+      (goto-line (plist-get location :line))
+      (goto-char (line-beginning-position))
+      (forward-char (plist-get location :column)))))
+
+(provide 'hiedb)

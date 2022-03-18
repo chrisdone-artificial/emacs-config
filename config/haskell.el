@@ -855,3 +855,5 @@ preserved, although placement may be funky."
   (if u
       (call-interactively 'hindent-reformat-decl-via)
     (call-interactively 'hindent-reformat-decl)))
+
+(define-key intero-mode-map (kbd "M-.") 'hiedb-goto-def)

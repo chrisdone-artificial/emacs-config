@@ -883,7 +883,6 @@ preserved, although placement may be funky."
                                      (forward-line (1- (plist-get use :line)))
                                      (forward-char (plist-get use :column))
                                      (point))))
-          (message "place: %s" loaded-file)
           (when (string= loaded-file (buffer-file-name (current-buffer)))
             (unless highlighted
               (intero-highlight-uses-mode))

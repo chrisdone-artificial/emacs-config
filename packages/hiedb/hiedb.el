@@ -17,6 +17,12 @@
 
 ;;; Code:
 
+;; Example .dir-locals.el
+;;
+;; ((haskell-mode . ((hiedb-bin . "/Users/chris/.cabal/bin/hiedb")
+;;                   (hiedb-file . "/Users/chris/Work/username/project/.hie-db")
+;;                   (hiedb-root . "/Users/chris/Work/username/project/src"))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Config
 
@@ -43,12 +49,30 @@
   :group 'hiedb)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Customization variables
+
+(defun hiedb-bin ()
+  "Generate the `hiedb-bin' variable."
+  (or hiedb-bin
+      (error "Please configure hiedb-bin in your .dir-locals.el. See hiedb.el for an example.")))
+
+(defun hiedb-file ()
+  "Generate the `hiedb-file' variable."
+  (or hiedb-file
+      (error "Please configure hiedb-file in your .dir-locals.el. See hiedb.el for an example.")))
+
+(defun hiedb-root ()
+  "Generate the `hiedb-root' variable."
+  (or hiedb-root
+      (error "Please configure hiedb-root in your .dir-locals.el. See hiedb.el for an example.")))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Basic RPC call infra
 
 (defun hiedb-call (&rest args)
   "Call hiedb with the given args, returning a string of the output."
-  (let ((bin hiedb-bin)
-        (file hiedb-file)
+  (let ((bin (hiedb-bin))
+        (file (hiedb-file))
         (in-file nil)
         (display nil))
     (with-temp-buffer
@@ -120,7 +144,7 @@
 (defun hiedb-module-filepath (module)
   "Get the filepath of MODULE."
   (format "%s/%s.hs"
-          hiedb-root
+          (hiedb-root)
           (replace-regexp-in-string "\\." "/" module)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

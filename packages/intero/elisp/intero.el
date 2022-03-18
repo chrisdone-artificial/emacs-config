@@ -213,15 +213,15 @@ by default."
    "2017-05-13"))
 
 
-(define-key intero-mode-map (kbd "C-c C-t") 'intero-type-at)
-(define-key intero-mode-map (kbd "M-?") 'intero-uses-at)
-(define-key intero-mode-map (kbd "C-c C-i") 'intero-info)
-(define-key intero-mode-map (kbd "M-.") 'intero-goto-definition)
-(define-key intero-mode-map (kbd "C-c C-l") 'intero-repl-load)
-(define-key intero-mode-map (kbd "C-c C-c") 'intero-repl-eval-region)
-(define-key intero-mode-map (kbd "C-c C-z") 'intero-repl)
+;; (define-key intero-mode-map (kbd "C-c C-t") 'intero-type-at)
+;; (define-key intero-mode-map (kbd "M-?") 'intero-uses-at)
+;; (define-key intero-mode-map (kbd "C-c C-i") 'intero-info)
+;; (define-key intero-mode-map (kbd "M-.") 'intero-goto-definition)
+;; (define-key intero-mode-map (kbd "C-c C-l") 'intero-repl-load)
+;; (define-key intero-mode-map (kbd "C-c C-c") 'intero-repl-eval-region)
+;; (define-key intero-mode-map (kbd "C-c C-z") 'intero-repl)
 (define-key intero-mode-map (kbd "C-c C-r") 'intero-apply-suggestions)
-(define-key intero-mode-map (kbd "C-c C-e") 'intero-expand-splice-at-point)
+;; (define-key intero-mode-map (kbd "C-c C-e") 'intero-expand-splice-at-point)
 
 (defun intero-directories-contain-file (file dirs)
   "Return non-nil if FILE is contained in at least one of DIRS."
@@ -1935,18 +1935,13 @@ type as arguments."
     (if (string-match-p "^<interactive>" optimistic-result)
         ;; Load the module Interpreted so that we get information,
         ;; then restore bytecode.
-        (progn (intero-async-call
-                'backend
-                ":set -fbyte-code")
+        (progn
                (set-buffer-modified-p t)
                (save-buffer)
                (unless (member 'save flycheck-check-syntax-automatically)
                  (intero-async-call
                   'backend
                   (concat ":load " (intero-path-for-ghci (intero-temp-file-name)))))
-               (intero-async-call
-                'backend
-                ":set -fobject-code")
                (replace-regexp-in-string
                 "\n$" ""
                 (intero-blocking-call
@@ -2394,12 +2389,10 @@ Uses the default stack config file, or STACK-YAML file if given."
            (process (plist-get process-info :process))
            (docker-container intero-docker-container))
       (set-process-query-on-exit-flag process nil)
-      (process-send-string process ":set -fobject-code\n")
       (process-send-string process (format ":set -DSTACK_ROOT=%s\n" (intero-project-root)))
-      (process-send-string process ":set -fdefer-type-errors\n")
-      (process-send-string process ":set +c\n")
       (process-send-string process ":set -fdiagnostics-color=never\n")
       (process-send-string process ":set prompt \"\\4\"\n")
+      (process-send-string process ":set -fobject-code -odir=.ghci-odir -odir=.ghci-odir\n")
       (with-current-buffer buffer
         (erase-buffer)
         (when docker-container
@@ -2433,9 +2426,7 @@ Uses the default stack config file, or STACK-YAML file if given."
        process
        (lambda (process string)
          (when intero-debug
-           (message "[Intero] <- %s" string))
-         (when (string-match "^\\(\\[[0-9]+ of [0-9]+\\] Compiling .*?\\) " string)
-           (run-with-idle-timer 3 nil (lambda (msg) (message "%s" msg)) (match-string 1 string)))
+           (message "[Intero] <- %s" (car (split-string string "\n" t))))
          (when (buffer-live-p (process-buffer process))
            (with-current-buffer (process-buffer process)
              (goto-char (point-max))
@@ -2454,12 +2445,6 @@ Uses the default stack config file, or STACK-YAML file if given."
                                                       "\n" t))
                                    "...")))
                    (message "Booting up intero ..."))))
-             (save-excursion
-               (goto-char (point-max))
-               (when (re-search-backward "\\[[0-9]+ of [0-9]+\\] Compiling [^ ]+"
-                                         nil t 1)
-                 ;; (message "Intero: %s" (match-string 0))
-                 ))
              (intero-read-buffer)))))
       (set-process-sentinel process 'intero-sentinel)
       buffer)))

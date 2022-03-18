@@ -20,17 +20,27 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Config
 
+(defgroup hiedb nil
+  "Group for hiedb."
+  :group 'haskell)
+
 (defcustom hiedb-bin
   "/Users/chris/.cabal/bin/hiedb"
-  "The binary path.")
+  "The binary path."
+  :type 'string
+  :group 'hiedb)
 
 (defcustom hiedb-file
   "/Users/chris/Work/artificialio/brossa/brossa/.hie-db"
-  "Path to the database.")
+  "Path to the database."
+  :type 'string
+  :group 'hiedb)
 
 (defcustom hiedb-root
   "/Users/chris/Work/artificialio/brossa/brossa/src"
-  "The root directory of the source code.")
+  "The root directory of the source code."
+  :type 'string
+  :group 'hiedb)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Basic RPC call infra
@@ -123,7 +133,8 @@
          (location (car locations)))
     (when location
       (find-file (hiedb-module-filepath (plist-get location :module)))
-      (goto-line (plist-get location :line))
+      (goto-char (point-min))
+      (forward-line (1- (plist-get location :line)))
       (goto-char (line-beginning-position))
       (forward-char (plist-get location :column)))))
 

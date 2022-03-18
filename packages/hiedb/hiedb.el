@@ -25,19 +25,19 @@
   :group 'haskell)
 
 (defcustom hiedb-bin
-  "/Users/chris/.cabal/bin/hiedb"
+  nil
   "The binary path."
   :type 'string
   :group 'hiedb)
 
 (defcustom hiedb-file
-  "/Users/chris/Work/artificialio/brossa/brossa/.hie-db"
+  nil
   "Path to the database."
   :type 'string
   :group 'hiedb)
 
 (defcustom hiedb-root
-  "/Users/chris/Work/artificialio/brossa/brossa/src"
+  nil
   "The root directory of the source code."
   :type 'string
   :group 'hiedb)
@@ -58,7 +58,7 @@
                                       in-file
                                       out-buffer
                                       display)
-                                (list "-D" hiedb-file)
+                                (list "-D" file)
                                 args))
           (0 (with-current-buffer out-buffer (buffer-string)))
           (t (error "hiedb error: %s" (with-current-buffer out-buffer (buffer-string)))))))))

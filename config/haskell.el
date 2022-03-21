@@ -900,12 +900,17 @@ preserved, although placement may be funky."
     (when externals
       (switch-to-buffer-other-window
        (with-current-buffer (get-buffer-create "*Haskell-uses*")
-         (erase-buffer)
-         (insert (format "Call sites for %s\n\n" thing))
-         (cl-loop for use in externals
-                  do (insert (format "%s:%d:%d: here.\n"
-                                     (plist-get use :file)
-                                     (plist-get use :line)
-                                     (plist-get use :column))))
-         (grep-mode)
-         (current-buffer))))))
+         (let ((inhibit-read-only t))
+           (erase-buffer)
+           (insert (format "Call sites for %s\n\n" thing))
+           (save-excursion
+             (cl-loop for use in externals
+                      do (if (file-exists-p (plist-get use :file))
+                             (insert (format "%s:%d: here.\n"
+                                             (plist-get use :file)
+                                             (plist-get use :line)
+                                             ))
+                           (insert (format "%s - unknown module location.\n"
+                                           (plist-get use :module))))))
+           (grep-mode)
+           (current-buffer)))))))

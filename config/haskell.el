@@ -875,22 +875,37 @@ preserved, although placement may be funky."
 (defun my-hiedb-intero-uses-at ()
   (interactive)
   (let ((highlighted nil)
-        (thing (intero-thing-at-point)))
+        (thing (intero-thing-at-point))
+        (externals nil))
     (cl-loop
      for use in (hiedb-call-by-point 'hiedb-point-refs)
-     do (let ((loaded-file (hiedb-module-filepath (plist-get use :module)))
-              (start (save-excursion (goto-char (point-min))
-                                     (forward-line (1- (plist-get use :line)))
-                                     (forward-char (plist-get use :column))
-                                     (point))))
-          (when (string= loaded-file (buffer-file-name (current-buffer)))
-            (unless highlighted
-              (intero-highlight-uses-mode))
-            (setq highlighted t)
-            (intero-highlight-uses-mode-highlight
-             start
-             (save-excursion (goto-char (point-min))
-                             (forward-line (1- (plist-get use :end-line)))
-                             (forward-char (plist-get use :end-column))
-                             (point))
-             (= start (car thing))))))))
+     do (let ((loaded-file (hiedb-module-filepath (plist-get use :module))))
+          (if (string= loaded-file (buffer-file-name))
+              (let ((start (save-excursion (goto-char (point-min))
+                                           (forward-line (1- (plist-get use :line)))
+                                           (forward-char (plist-get use :column))
+                                           (point))))
+                (when (string= loaded-file (buffer-file-name (current-buffer)))
+                  (unless highlighted
+                    (intero-highlight-uses-mode))
+                  (setq highlighted t)
+                  (intero-highlight-uses-mode-highlight
+                   start
+                   (save-excursion (goto-char (point-min))
+                                   (forward-line (1- (plist-get use :end-line)))
+                                   (forward-char (plist-get use :end-column))
+                                   (point))
+                   (= start (car thing)))))
+            (setq externals (cons (append use (list :file loaded-file)) externals)))))
+    (when externals
+      (switch-to-buffer-other-window
+       (with-current-buffer (get-buffer-create "*Haskell-uses*")
+         (erase-buffer)
+         (insert (format "Call sites for %s\n\n" thing))
+         (cl-loop for use in externals
+                  do (insert (format "%s:%d:%d: here.\n"
+                                     (plist-get use :file)
+                                     (plist-get use :line)
+                                     (plist-get use :column))))
+         (grep-mode)
+         (current-buffer))))))

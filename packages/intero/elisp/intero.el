@@ -761,16 +761,8 @@ running context across :load/:reloads in Intero."
                       cont
                       'interrupted)
     (let* ((file-buffer (current-buffer)))
-      ;; We queue up to :move the staging file to the target temp
-      ;; file, which also updates its modified time.
-      ;; (intero-async-call
-      ;;  'backend
-      ;;  (format ":!mv %s %s" staging-file temp-file))
-      ;; We load up the target temp file, which has only been updated
-      ;; by the copy above.
       (intero-async-call
        'backend
-       ;; (concat ":load " temp-file)
        ":r"
        (list :cont cont
              :file-buffer file-buffer
@@ -790,20 +782,7 @@ running context across :load/:reloads in Intero."
                                           msgs)))
                (setq intero-check-last-results results)
                (funcall (plist-get state :cont) 'finished results))
-             (when compile-ok
-               (intero-async-call 'backend
-                                  (concat ":module + "
-                                          (replace-regexp-in-string "," "" modules))
-                                  nil
-                                  (lambda (_st _))))))))
-      ;; We sleep for at least one second to allow a buffer period
-      ;; between module updates. GHCi will consider a module Foo to be
-      ;; unchanged even if its filename has changed or timestmap has
-      ;; changed, if the timestamp is less than 1 second.
-      ;; (intero-async-call
-      ;;  'backend
-      ;;  ":!sleep 0.1")
-      )))
+             )))))))
 
 (flycheck-define-generic-checker 'intero
   "A syntax and type checker for Haskell using an Intero worker

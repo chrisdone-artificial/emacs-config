@@ -2400,6 +2400,11 @@ Uses the default stack config file, or STACK-YAML file if given."
       (set-process-filter
        process
        (lambda (process string)
+         (when (get-buffer "*Flycheck errors*")
+             (with-current-buffer (get-buffer "*Flycheck errors*")
+               (goto-char (point-min))
+               (let ((inhibit-read-only t))
+                   (insert string))))
          (when intero-debug
            (message "[Intero] <- %s" (car (split-string string "\n" t))))
          (when (buffer-live-p (process-buffer process))

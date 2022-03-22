@@ -769,20 +769,16 @@ running context across :load/:reloads in Intero."
              :checker checker)
        (lambda (state string)
          (with-current-buffer (plist-get state :file-buffer)
-           (let* ((compile-ok (string-match "O[Kk], modules loaded: \\(.*\\)\\.$" string))
-                  (modules (match-string 1 string))
-                  (msgs (intero-parse-errors-warnings-splices
+           (let* ((msgs (intero-parse-errors-warnings-splices
                          (plist-get state :checker)
                          (current-buffer)
                          string)))
              (intero-collect-compiler-messages msgs)
-             ;; (message "Intero: Done")
              (let ((results (cl-remove-if (lambda (msg)
                                             (eq 'splice (flycheck-error-level msg)))
                                           msgs)))
                (setq intero-check-last-results results)
-               (funcall (plist-get state :cont) 'finished results))
-             )))))))
+               (funcall (plist-get state :cont) 'finished results)))))))))
 
 (flycheck-define-generic-checker 'intero
   "A syntax and type checker for Haskell using an Intero worker

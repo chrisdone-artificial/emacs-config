@@ -760,19 +760,18 @@ running context across :load/:reloads in Intero."
                       nil
                       cont
                       'interrupted)
-    (let* ((file-buffer (current-buffer))
-           (staging-file (intero-path-for-ghci (intero-staging-file-name)))
-           (temp-file (intero-path-for-ghci (intero-temp-file-name))))
+    (let* ((file-buffer (current-buffer)))
       ;; We queue up to :move the staging file to the target temp
       ;; file, which also updates its modified time.
-      (intero-async-call
-       'backend
-       (format ":!mv %s %s" staging-file temp-file))
+      ;; (intero-async-call
+      ;;  'backend
+      ;;  (format ":!mv %s %s" staging-file temp-file))
       ;; We load up the target temp file, which has only been updated
       ;; by the copy above.
       (intero-async-call
        'backend
-       (concat ":load " temp-file)
+       ;; (concat ":load " temp-file)
+       ":r"
        (list :cont cont
              :file-buffer file-buffer
              :checker checker)
@@ -801,9 +800,10 @@ running context across :load/:reloads in Intero."
       ;; between module updates. GHCi will consider a module Foo to be
       ;; unchanged even if its filename has changed or timestmap has
       ;; changed, if the timestamp is less than 1 second.
-      (intero-async-call
-       'backend
-       ":!sleep 0.1"))))
+      ;; (intero-async-call
+      ;;  'backend
+      ;;  ":!sleep 0.1")
+      )))
 
 (flycheck-define-generic-checker 'intero
   "A syntax and type checker for Haskell using an Intero worker
@@ -2392,7 +2392,7 @@ Uses the default stack config file, or STACK-YAML file if given."
       (process-send-string process (format ":set -DSTACK_ROOT=%s\n" (intero-project-root)))
       (process-send-string process ":set -fdiagnostics-color=never\n")
       (process-send-string process ":set prompt \"\\4\"\n")
-      (process-send-string process ":set -fobject-code -odir=.ghci-odir -odir=.ghci-odir\n")
+      (process-send-string process ":set -fbyte-code")
       (with-current-buffer buffer
         (erase-buffer)
         (when docker-container

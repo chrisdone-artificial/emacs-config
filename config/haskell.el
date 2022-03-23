@@ -306,8 +306,8 @@ import Data.Sequence (Seq)
 (add-hook 'haskell-mode-hook 'haskell-auto-insert-module-template)
 (add-hook 'w3m-display-hook 'w3m-haddock-display)
 
-(add-hook 'haskell-mode-hook 'intero-mode)
-(add-hook 'haskell-mode-hook 'my-intero-mode)
+(remove-hook 'haskell-mode-hook 'intero-mode)
+(remove-hook 'haskell-mode-hook 'my-intero-mode)
 
 (defun my-intero-mode ()
   (interactive)

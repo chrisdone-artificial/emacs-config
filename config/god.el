@@ -5,10 +5,16 @@
 
 (defun god-update-cursor ()
   "Update my cursor."
-  (setq cursor-type
-        (if god-local-mode
-            'box
-          'bar)))
+  (if window-system
+      (setq cursor-type
+            (if god-local-mode
+                'box
+              'bar
+              ))
+    (if god-local-mode
+        (send-string-to-terminal "\e]50;CursorShape=0\x7") ;; 'box
+      (send-string-to-terminal "\e]50;CursorShape=1\x7") ;; 'bar
+      )))
 
 (defun god-toggle-on-overwrite ()
   "Toggle god-mode on overwrite-mode."
@@ -26,12 +32,12 @@
 
 (define-key god-local-mode-map (kbd ".") 'repeat)
 
-(global-set-key (kbd "<escape>") 'god-mode-all)
+(global-set-key (kbd "<f3>") 'god-mode-all)
 (define-key god-local-mode-map (kbd "DEL") 'delete-backward-char)
 (define-key god-local-mode-map (kbd "m") 'quickjump-back)
 
-(define-key isearch-mode-map (kbd "<escape>") 'god-mode-isearch-activate)
-(define-key god-mode-isearch-map (kbd "<escape>") 'god-mode-isearch-disable)
+(define-key isearch-mode-map (kbd "<f3>") 'god-mode-isearch-activate)
+(define-key god-mode-isearch-map (kbd "<f3>") 'god-mode-isearch-disable)
 
 (setq god-exempt-major-modes nil)
 (setq god-exempt-predicates nil)

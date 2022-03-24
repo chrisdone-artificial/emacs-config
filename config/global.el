@@ -398,9 +398,9 @@ prefix argument."
 (global-set-key (kbd "C-h") 'previous-line)
 
 (global-set-key (kbd "C-,") 'quickjump-forward)
-(global-set-key (kbd "C-m") 'quickjump-back)
+;(define-key input-decode-map [?\C-m] [C-m])
+;(global-set-key (kbd "C-m") 'quickjump-back)
 (global-set-key (kbd "RET") 'newline)
-(define-key input-decode-map "\C-m" [C-m])
 
 (defun avoid-this-key ()
   (interactive)
@@ -682,7 +682,7 @@ prefix argument."
 
 (defface esk-paren-face
   '((((class color) (background dark))
-     (:foreground "grey50"))
+     (:foreground "#696969"))
     (((class color) (background light))
      (:foreground "#bbbbbb")))
   "Face used to dim parentheses."
@@ -692,16 +692,9 @@ prefix argument."
   '((((class color) (background dark))
      (:foreground "#ffffff"))
     (((class color) (background light))
-     (:foreground "#000000")))
+     (:foreground "#ffffff")))
   "Face used to darken parentheses."
   :group 'starter-kit-faces)
-
-;; Change lambda to an actual lambda symbol
-(mapc (lambda (major-mode)
-        (font-lock-add-keywords
-         major-mode
-         '(("(\\|)\\|\\[\\|\\]" . 'esk-paren-face))))
-      '(emacs-lisp-mode haskell-mode))
 
 
 ;; Uniquify

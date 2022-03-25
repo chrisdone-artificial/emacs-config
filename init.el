@@ -20,6 +20,7 @@
     audit
     haskell-mode
     rust-mode
+    clipetty
     web-mode
     typescript-mode
     smex
@@ -150,3 +151,6 @@
 (defun turn-off-display-line-numbers-mode ()
   (interactive)
   (display-line-numbers-mode -1))
+
+(require 'clipetty)
+(global-clipetty-mode)

@@ -589,6 +589,7 @@ prefix argument."
 (setq default-major-mode 'text-mode)
 (setq-default indent-tabs-mode nil)
 (setq-default cursor-type 'bar)
+
 (blink-cursor-mode -1)
 
 (setq gnus-button-url 'browse-url-generic)
@@ -1033,5 +1034,7 @@ prefix argument."
                    (buffer-string))))
     (delete-region beg end)
     (insert output)))
+
+(set-face-foreground 'vertical-border "black")
 
 (provide 'global)

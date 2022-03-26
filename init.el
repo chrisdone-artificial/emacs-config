@@ -83,7 +83,8 @@
     "markdown"
     "org"
     "ivy"
-    "prodigy")
+    "prodigy"
+    "focus")
   "Configuration files that follow the config/foo.el file path
   format.")
 

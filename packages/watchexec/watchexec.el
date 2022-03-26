@@ -20,7 +20,7 @@
 ;;; Code:
 
 (defcustom watchexec-extensions
-  "hs,js,purs"
+  "hs,js,purs,txt"
   "Comma-separated list of extensions to watch.")
 
 (defvar-local watchexec-process nil
@@ -31,6 +31,10 @@
 
 (defvar-local watchexec-repl-buffer nil
   "The REPL's buffer.")
+
+(defcustom watchexec-bin-path
+  "/home/chris/.nix-profile/bin/watchexec"
+  "Binary path.")
 
 (defun watchexec-stop ()
   (interactive)
@@ -59,7 +63,7 @@ buffer followed by hitting the RET key."
           (start-process
            "watchexec"
            buffer
-           "/Users/chris/.nix-profile/bin/watchexec"
+           watchexec-bin-path
            "--no-shell"
            "--exts"
            watchexec-extensions
@@ -82,7 +86,7 @@ buffer followed by hitting the RET key."
              (buffer-live-p (process-buffer process)))
     (with-current-buffer (process-buffer process)
       (when (and (bufferp watchexec-repl-buffer)
-             (buffer-live-p watchexec-repl-buffer))
+                 (buffer-live-p watchexec-repl-buffer))
         (with-current-buffer watchexec-repl-buffer
           (goto-char (point-max))
           (insert watchexec-commands)

@@ -1465,7 +1465,7 @@ stack's default)."
               (intero-localize-path (intero-buffer-file-name)))))
       (let ((process
              (get-buffer-process
-              (apply #'make-comint-in-buffer "intero" (current-buffer) "/Users/chris/.local/bin/envy"  nil
+              (apply #'make-comint-in-buffer "intero" (current-buffer) "/home/chris/.cabal/bin/envy"  nil
                      "exec"
                      (intero-get-docker-container)
                      (intero-tool)
@@ -2080,7 +2080,7 @@ INFILE, DESTINATION, DISPLAY and ARGS are as for
 'call-process'/'process-file'.  Provides TRAMP compatibility for
 'call-process'; when the 'default-directory' is on a remote
 machine, PROGRAM is launched on that machine."
-  (let ((process-args (append (list "/Users/chris/.local/bin/envy" infile destination display)
+  (let ((process-args (append (list "/home/chris/.cabal/bin/envy" infile destination display)
                               (append (list "exec" (intero-get-docker-container) program)
                                       args))))
     (apply 'process-file process-args)))
@@ -2364,10 +2364,6 @@ Uses the default stack config file, or STACK-YAML file if given."
            (process (plist-get process-info :process))
            (docker-container intero-docker-container))
       (set-process-query-on-exit-flag process nil)
-      (process-send-string process (format ":set -DSTACK_ROOT=%s\n" (intero-project-root)))
-      (process-send-string process ":set -fdiagnostics-color=never\n")
-      (process-send-string process ":set prompt \"\\4\"\n")
-      (process-send-string process ":set -fbyte-code\n")
       (with-current-buffer buffer
         (erase-buffer)
         (when docker-container
@@ -2427,6 +2423,10 @@ Uses the default stack config file, or STACK-YAML file if given."
                    (message "Booting up intero ..."))))
              (intero-read-buffer)))))
       (set-process-sentinel process 'intero-sentinel)
+      (process-send-string process (format ":set -DSTACK_ROOT=%s\n" (intero-project-root)))
+      (process-send-string process ":set -fdiagnostics-color=never\n")
+      (process-send-string process ":set prompt \"\\4\"\n")
+      (process-send-string process ":set -fbyte-code\n")
       buffer)))
 
 (defun intero-start-piped-process (buffer targets stack-yaml)
@@ -2463,7 +2463,7 @@ Uses the default stack config file, or STACK-YAML file if given."
   (apply #'start-file-process
          name
          buffer
-         "/Users/chris/.local/bin/envy"
+         "/home/chris/.cabal/bin/envy"
          (append
           (list "exec" (intero-get-docker-container) program)
           program-args)))

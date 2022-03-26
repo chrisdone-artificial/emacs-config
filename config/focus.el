@@ -8,12 +8,15 @@
   (when (frame-focus-state)
     (send-string-to-terminal "\a")))
 
+(defvar last-clipboard-update "")
 (defun update-clipboard (base64)
   "Given a base64 string, decode it, strip final newline, and replace ^M with \n."
-  (kill-new (with-temp-buffer
-              (insert (base64-decode-string base64))
-              (replace-regexp-in-string
-               ""
-               "\n"
-               (buffer-substring (point-min) (1- (point-max))))))
+  (unless (string= base64 last-clipboard-update)
+    (kill-new (with-temp-buffer
+                (insert (base64-decode-string base64))
+                (replace-regexp-in-string
+                 ""
+                 "\n"
+                 (buffer-substring (point-min) (1- (point-max)))))))
+  (setq last-clipboard-update base64)
   "Clipboard updated.")

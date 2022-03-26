@@ -550,7 +550,7 @@ import Data.Sequence (Seq)
 (define-key interactive-haskell-mode-map (kbd "C-c C-c") 'haskell-process-stack-build)
 (define-key interactive-haskell-mode-map (kbd "C-c c") 'haskell-process-stack)
 
-(setq flycheck-check-syntax-automatically '(save idle-change new-line mode-enabled))
+(setq flycheck-check-syntax-automatically '(save mode-enabled))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

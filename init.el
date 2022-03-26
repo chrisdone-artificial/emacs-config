@@ -60,7 +60,8 @@
     kubel
     graphviz-dot-mode
     dogears
-    go-mode)
+    go-mode
+    hiedb)
   "Packages whose location follows the
   packages/package-name/package-name.el format.")
 
@@ -118,6 +119,7 @@
 (require 'haskell-move-nested)
 (require 'psc-ide)
 (require 'counsel)
+(require 'hiedb)
 
 
 ;; Emacs configurations

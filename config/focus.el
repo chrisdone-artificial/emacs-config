@@ -13,10 +13,8 @@
   "Given a base64 string, decode it, strip final newline, and replace ^M with \n."
   (unless (string= base64 last-clipboard-update)
     (kill-new (with-temp-buffer
+                (set-buffer-multibyte nil)
                 (insert (base64-decode-string base64))
-                (replace-regexp-in-string
-                 ""
-                 "\n"
-                 (buffer-substring (point-min) (1- (point-max)))))))
+                (decode-coding-region (point-min) (point-max) 'utf-8 t))))
   (setq last-clipboard-update base64)
   "Clipboard updated.")

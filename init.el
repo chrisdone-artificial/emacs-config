@@ -157,3 +157,4 @@
 
 (require 'clipetty)
 (global-clipetty-mode)
+(server-start)

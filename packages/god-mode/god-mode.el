@@ -253,7 +253,8 @@ call it."
 (defun god-mode-maybe-activate (&optional status)
   "Activate God mode locally on individual buffers when appropriate."
   (when (not (minibufferp))
-    (god-mode-activate status)))
+    (god-mode-activate status))
+  (god-update-cursor))
 
 (defun god-mode-activate (&optional status)
   "Activate God mode locally on individual buffers when appropriate."

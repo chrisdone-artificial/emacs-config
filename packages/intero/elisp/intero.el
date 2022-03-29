@@ -361,10 +361,12 @@ This is slower, but will build required dependencies.")
                      intero-repl-no-load
                      intero-stack-yaml
                      intero-docker-container
+                     intero-project-root
                      ;; TODO: shouldn’t more of the above be here?
                      )))
     (cl-loop for v in variables do
-             (set (make-local-variable v) (buffer-local-value v buffer)))))
+             (progn ;; (message "set %S to %S" v (buffer-local-value v buffer))
+                    (set (make-local-variable v) (buffer-local-value v buffer))))))
 
 (defmacro intero-with-temp-buffer (&rest body)
   "Run BODY in `with-temp-buffer', but inherit certain local variables from the current buffer first."
@@ -1485,7 +1487,9 @@ stack's default)."
   (replace-regexp-in-string
    "\n$" ""
    (let ((default-directory (intero-project-root)))
-     (shell-command-to-string "cat .intero"))))
+     (shell-command-to-string (format "/home/chris/.cabal/bin/envy exec %s %s/.intero"
+                                      (intero-get-docker-container)
+                                      default-directory)))))
 
 (defun intero-repl-options (backend-buffer)
   "Open an option menu to set options used when starting the REPL.
@@ -2700,7 +2704,7 @@ no such project-specific config exists."
                                             "--project-root"
                                             "--verbosity" "silent"))
                 (0 (buffer-substring (line-beginning-position) (line-end-position)))
-                (t (intero--warn "Couldn't get the Stack project root.
+                (t (error "Couldn't get the Stack project root.
 
 This can be caused by a syntax error in your stack.yaml file. Check that out.
 

@@ -1037,4 +1037,8 @@ prefix argument."
 
 (set-face-foreground 'vertical-border "black")
 
+(defun treefmt ()
+  (interactive)
+  (message "%s" (shell-command-to-string "/home/chris/.cabal/bin/envy exec brossa treefmt")))
+
 (provide 'global)

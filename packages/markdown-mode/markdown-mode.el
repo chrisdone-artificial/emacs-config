@@ -212,7 +212,7 @@
 ;;     line is not blank, they use the text on the current line.
 ;;     Finally, the setext commands will prompt for heading text if
 ;;     there is no active region and the current line is blank.
-;;     
+;;
 ;;     `C-c C-t h` inserts a heading with automatically chosen type and
 ;;     level (both determined by the previous heading).  `C-c C-t H`
 ;;     behaves similarly, but uses setext (underlined) headings when
@@ -4096,37 +4096,6 @@ See `markdown-cycle-atx', `markdown-cycle-setext', and
 
 
 ;;; Commands ==================================================================
-
-(defun markdown (&optional output-buffer-name)
-  "Run `markdown-command' on buffer, sending output to OUTPUT-BUFFER-NAME.
-The output buffer name defaults to `markdown-output-buffer-name'.
-Return the name of the output buffer used."
-  (interactive)
-  (save-window-excursion
-    (let ((begin-region)
-          (end-region))
-      (if (markdown-use-region-p)
-          (setq begin-region (region-beginning)
-                end-region (region-end))
-        (setq begin-region (point-min)
-              end-region (point-max)))
-
-      (unless output-buffer-name
-        (setq output-buffer-name markdown-output-buffer-name))
-
-      (cond
-       ;; Handle case when `markdown-command' does not read from stdin
-       (markdown-command-needs-filename
-        (if (not buffer-file-name)
-            (error "Must be visiting a file")
-          (shell-command (concat markdown-command " "
-                                 (shell-quote-argument buffer-file-name))
-                         output-buffer-name)))
-       ;; Pass region to `markdown-command' via stdin
-       (t
-        (shell-command-on-region begin-region end-region markdown-command
-                                 output-buffer-name))))
-    output-buffer-name))
 
 (defun markdown-standalone (&optional output-buffer-name)
   "Special function to provide standalone HTML output.

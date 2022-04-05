@@ -1467,7 +1467,7 @@ stack's default)."
               (intero-localize-path (intero-buffer-file-name)))))
       (let ((process
              (get-buffer-process
-              (apply #'make-comint-in-buffer "intero" (current-buffer) "/home/chris/.cabal/bin/envy"  nil
+              (apply #'make-comint-in-buffer "intero" (current-buffer) "/home/chris/.local/bin/envy"  nil
                      "exec"
                      (intero-get-docker-container)
                      (intero-tool)
@@ -1487,7 +1487,7 @@ stack's default)."
   (replace-regexp-in-string
    "\n$" ""
    (let ((default-directory (intero-project-root)))
-     (shell-command-to-string (format "/home/chris/.cabal/bin/envy exec %s %s/.intero"
+     (shell-command-to-string (format "/home/chris/.local/bin/envy exec %s %s/.intero"
                                       (intero-get-docker-container)
                                       default-directory)))))
 
@@ -2084,7 +2084,7 @@ INFILE, DESTINATION, DISPLAY and ARGS are as for
 'call-process'/'process-file'.  Provides TRAMP compatibility for
 'call-process'; when the 'default-directory' is on a remote
 machine, PROGRAM is launched on that machine."
-  (let ((process-args (append (list "/home/chris/.cabal/bin/envy" infile destination display)
+  (let ((process-args (append (list "/home/chris/.local/bin/envy" infile destination display)
                               (append (list "exec" (intero-get-docker-container) program)
                                       args))))
     (apply 'process-file process-args)))
@@ -2467,7 +2467,7 @@ Uses the default stack config file, or STACK-YAML file if given."
   (apply #'start-file-process
          name
          buffer
-         "/home/chris/.cabal/bin/envy"
+         "/home/chris/.local/bin/envy"
          (append
           (list "exec" (intero-get-docker-container) program)
           program-args)))

@@ -1039,6 +1039,8 @@ prefix argument."
 
 (defun treefmt ()
   (interactive)
-  (message "%s" (shell-command-to-string "/home/chris/.cabal/bin/envy exec brossa treefmt")))
+  (message "%s" (shell-command-to-string "/home/chris/.local/bin/envy exec brossa treefmt")))
+
+(setq-default mode-line-end-spaces nil)
 
 (provide 'global)

@@ -137,7 +137,7 @@ If REGEXP is non-nil, treat STRING as a regular expression."
       (error "No such directory %s" default-directory))
     (compilation-start
      (mapconcat 'shell-quote-argument
-                (append '("/home/chris/.nix-profile/bin/rg") arguments (list string "."))
+                (append '("/opt/rg-13.0.0") arguments (list string "."))
                 " ")
      'ag-mode
      `(lambda (mode-name) ,(ag/buffer-name string directory regexp)))))

@@ -31,8 +31,8 @@
 (define-key god-local-mode-map (kbd "DEL") 'delete-backward-char)
 (define-key god-local-mode-map (kbd "m") 'quickjump-back)
 
-(define-key isearch-mode-map (kbd "<f3>") 'god-mode-isearch-activate)
-(define-key god-mode-isearch-map (kbd "<f3>") 'god-mode-isearch-disable)
+(define-key isearch-mode-map (kbd "<escape>") 'god-mode-isearch-activate)
+(define-key god-mode-isearch-map (kbd "<escape>") 'god-mode-isearch-disable)
 
 (setq god-exempt-major-modes nil)
 (setq god-exempt-predicates nil)

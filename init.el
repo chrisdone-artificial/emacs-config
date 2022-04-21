@@ -141,7 +141,6 @@
 (turn-on-haskell-simple-indent)
 (global-set-key (kbd "C-z") 'ido-switch-buffer)
 (winner-mode)
-(xterm-mouse-mode)
 
 (global-display-line-numbers-mode)
 
@@ -155,7 +154,3 @@
 (defun turn-off-display-line-numbers-mode ()
   (interactive)
   (display-line-numbers-mode -1))
-
-(require 'clipetty)
-(global-clipetty-mode)
-(server-start)

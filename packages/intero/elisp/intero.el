@@ -182,7 +182,7 @@ by default."
         (intero-flycheck-enable)
         (add-hook 'completion-at-point-functions 'intero-completion-at-point nil t)
         (add-to-list (make-local-variable 'company-backends) 'intero-company)
-        (company-mode)
+        ;; (company-mode)
         (setq-local company-minimum-prefix-length 1)
         (unless eldoc-documentation-function
           (setq-local eldoc-documentation-function #'ignore))
@@ -1420,77 +1420,6 @@ STORE-PREVIOUS is non-nil, note the caller's buffer in
   (add-hook 'completion-at-point-functions 'intero-repl-completion-at-point nil t)
   (company-mode))
 
-(defun intero-repl-mode-start (backend-buffer targets prompt-options stack-yaml)
-  "Start the process for the repl in the current buffer.
-BACKEND-BUFFER is used for options.  TARGETS is the targets to
-load.  If PROMPT-OPTIONS is non-nil, prompt with an options list.
-STACK-YAML is the stack yaml config to use.  When nil, tries to
-use project-wide intero-stack-yaml when nil, otherwise uses
-stack's default)."
-  (setq intero-targets targets)
-  (setq intero-repl-last-loaded nil)
-  (when stack-yaml
-    (setq intero-stack-yaml stack-yaml))
-  (when prompt-options
-    (intero-repl-options backend-buffer))
-  (let ((stack-yaml (if stack-yaml
-                        stack-yaml
-                      (buffer-local-value 'intero-stack-yaml backend-buffer)))
-        (arguments (intero-make-options-list
-                    "repl"
-                    (or targets
-                        (let ((package-name (buffer-local-value 'intero-package-name
-                                                                backend-buffer)))
-                          (unless (equal "" package-name)
-                            (list package-name)))))))
-    (insert (propertize
-             (format "Starting:\n  %s ghci %s\n" intero-stack-executable
-                     (combine-and-quote-strings arguments))
-             'face 'font-lock-comment-face))
-    (let* ((script-buffer
-            (with-current-buffer (find-file-noselect (intero-make-temp-file "intero-script"))
-              ;; Commented out this line due to this bug:
-              ;; https://github.com/chrisdone/intero/issues/569
-              ;; GHC 8.4.3 has some bug causing a panic on GHCi.
-              ;; :set -fdefer-type-errors
-              (insert (format ":set prompt \"\"
-:set -fbyte-code
-:set -fdiagnostics-color=never
-:set prompt \"\\4 \"
-:set -DDEBUG=true\n
-:set -DSTACK_ROOT=%s\n
-" (intero-project-root)))
-              (basic-save-buffer)
-              (current-buffer)))
-           (script
-            (with-current-buffer script-buffer
-              (intero-localize-path (intero-buffer-file-name)))))
-      (let ((process
-             (get-buffer-process
-              (apply #'make-comint-in-buffer "intero" (current-buffer) "/home/chris/.local/bin/envy"  nil
-                     "exec"
-                     (intero-get-docker-container)
-                     (intero-tool)
-                     "repl"
-                     ;; (append arguments
-                     ;;         (list "--verbosity" "silent")
-                     ;;         (list "--ghci-options"
-                     ;;               (concat "-ghci-script=" script))
-                     ;;         (cl-mapcan (lambda (x) (list "--ghci-options" x)) intero-extra-ghci-options))
-                     ))))
-        (when (process-live-p process)
-          (set-process-query-on-exit-flag process nil)
-          (message "Started Intero process for REPL.")
-          (kill-buffer script-buffer))))))
-
-(defun intero-tool ()
-  (replace-regexp-in-string
-   "\n$" ""
-   (let ((default-directory (intero-project-root)))
-     (shell-command-to-string (format "/home/chris/.local/bin/envy exec %s %s/.intero"
-                                      (intero-get-docker-container)
-                                      default-directory)))))
-
 (defun intero-repl-options (backend-buffer)
   "Open an option menu to set options used when starting the REPL.
 Default options come from user customization and any temporary
@@ -2467,10 +2396,13 @@ Uses the default stack config file, or STACK-YAML file if given."
   (apply #'start-file-process
          name
          buffer
-         "/home/chris/.local/bin/envy"
-         (append
-          (list "exec" (intero-get-docker-container) program)
+         "/Users/chris/Work/chrisdone-artificial/brossa-docker/envy.sh"
+         (cons
+          program
           program-args)))
+
+(defun intero-tool ()
+  "cabal")
 
 (defun intero-flycheck-buffer ()
   "Run flycheck in the buffer.
@@ -2526,44 +2458,10 @@ This is a standard process sentinel function."
       (goto-char (point-min))
       (search-forward-regexp "cannot satisfy -package" nil t 1))))
 
-(defun intero-executable-path (stack-yaml)
-  "The path for the intero executable."
-  (let ((v (intero-shell-command-to-string "stack ghc -- --version")))
-    (if (or (string-match-p (regexp-quote "version 8.10") v)
-            (string-match-p (regexp-quote "version 8.8.3") v)
-            (string-match-p (regexp-quote "version 8.8.4") v))
-        "ghci"
-      (intero-with-temp-buffer
-        (cl-case (save-excursion
-                   (intero-call-stack
-                    nil (current-buffer) t intero-stack-yaml "path" "--compiler-tools-bin"))
-          (0 (replace-regexp-in-string "[\r\n]+$" "/intero" (buffer-string)))
-          (1 "intero"))))))
-
 (defun intero-installed-p ()
   "Return non-nil if intero (of the right version) is installed in the stack environment."
   (redisplay)
-  'installed
-  ;; (intero-with-temp-buffer
-  ;;   (if (= 0 (intero-call-stack
-  ;;             nil t nil intero-stack-yaml
-  ;;             "exec"
-  ;;             "--verbosity" "silent"
-  ;;             "--"
-  ;;             (intero-executable-path intero-stack-yaml)
-  ;;             "--version"))
-  ;;       (progn
-  ;;         (goto-char (point-min))
-  ;;         ;; This skipping comes due to https://github.com/commercialhaskell/intero/pull/216/files
-  ;;         (when (looking-at "Intero ")
-  ;;           (goto-char (match-end 0)))
-  ;;         ;;
-  ;;         (if (string= (buffer-substring (point) (line-end-position))
-  ;;                      intero-package-version)
-  ;;             'installed
-  ;;           'wrong-version))
-  ;;     'not-installed))
-  )
+  'installed)
 
 (defun intero-show-process-problem (process change)
   "Report to the user that PROCESS reported CHANGE, causing it to end."
@@ -3281,11 +3179,7 @@ suggestions are available."
                                (string-match "^[A-Z][A-Za-z0-9]+$" str)))
                (split-string
                 (intero-shell-command-to-string
-                 (concat intero-stack-executable
-                         (if intero-stack-yaml
-                             (concat "--stack-yaml " intero-stack-yaml)
-                           "")
-                         " exec --verbosity silent -- ghc --supported-extensions"))))))))
+                 "ghc --supported-extensions")))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Auto actions
@@ -3784,20 +3678,17 @@ If CURRENT, highlight the span uniquely."
 
 (defun intero-shell-command-to-string (string)
   (shell-command-to-string
-   (concat "docker exec "
-           (intero-get-docker-container)
+   (concat "/Users/chris/Work/chrisdone-artificial/brossa-docker/envy.sh "
            string)))
 
-(defvar-local intero-docker-container nil)
 (defun intero-get-docker-container ()
-  (or intero-docker-container
-      (setq intero-docker-container
-            (completing-read "Container: " (list)))))
+  (error "intero-get-docker-container: delete me"))
 
 (defun intero-interrupt ()
   "Send C-c interrupt to the process."
   (interactive)
   (interrupt-process (intero-process 'backend)))
+
 
 (provide 'intero)
 

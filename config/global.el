@@ -1043,6 +1043,8 @@ prefix argument."
 
 (setq-default mode-line-end-spaces nil)
 
+(add-to-list 'default-frame-alist '(ns-appearance . dark))
+(add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
 (setq frame-resize-pixelwise t)
 (toggle-frame-maximized)
 

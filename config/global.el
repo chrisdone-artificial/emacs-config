@@ -1044,5 +1044,6 @@ prefix argument."
 (setq-default mode-line-end-spaces nil)
 
 (setq frame-resize-pixelwise t)
+(toggle-frame-maximized)
 
 (provide 'global)

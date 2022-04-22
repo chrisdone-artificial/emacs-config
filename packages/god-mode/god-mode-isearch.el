@@ -25,6 +25,7 @@
 (defvar god-mode-isearch-map
   (let ((map (copy-keymap isearch-mode-map)))
     (define-key map (kbd "s") 'isearch-repeat-forward)
+    (define-key map (kbd "y") 'isearch-yank-kill)
     (define-key map (kbd "r") 'isearch-repeat-backward)
     (define-key map (kbd "w") 'isearch-yank-word-or-char)
     map)

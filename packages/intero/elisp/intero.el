@@ -360,7 +360,6 @@ This is slower, but will build required dependencies.")
                      intero-repl-no-build
                      intero-repl-no-load
                      intero-stack-yaml
-                     intero-docker-container
                      intero-project-root
                      ;; TODO: shouldn’t more of the above be here?
                      )))
@@ -2013,10 +2012,12 @@ INFILE, DESTINATION, DISPLAY and ARGS are as for
 'call-process'/'process-file'.  Provides TRAMP compatibility for
 'call-process'; when the 'default-directory' is on a remote
 machine, PROGRAM is launched on that machine."
-  (let ((process-args (append (list "/home/chris/.local/bin/envy" infile destination display)
-                              (append (list "exec" (intero-get-docker-container) program)
-                                      args))))
-    (apply 'process-file process-args)))
+  (error "no!!!!")
+  ;; (let ((process-args (append (list "/home/chris/.local/bin/envy" infile destination display)
+  ;;                             (append (list "exec" (intero-get-docker-container) program)
+  ;;                                     args))))
+  ;;   (apply 'process-file process-args))
+  )
 
 (defun intero-call-stack (&optional infile destination display stack-yaml &rest args)
   "Synchronously call stack using the same arguments as `intero-call-process'.
@@ -2294,13 +2295,10 @@ Uses the default stack config file, or STACK-YAML file if given."
     (let* ((process-info (intero-start-piped-process buffer targets stack-yaml))
            (arguments (plist-get process-info :arguments))
            (options (plist-get process-info :options))
-           (process (plist-get process-info :process))
-           (docker-container intero-docker-container))
+           (process (plist-get process-info :process)))
       (set-process-query-on-exit-flag process nil)
       (with-current-buffer buffer
         (erase-buffer)
-        (when docker-container
-          (setq intero-docker-container docker-container))
         (when stack-yaml
           (setq intero-stack-yaml stack-yaml))
         (setq intero-targets targets)

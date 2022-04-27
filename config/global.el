@@ -1039,7 +1039,7 @@ prefix argument."
 
 (defun treefmt ()
   (interactive)
-  (message "%s" (shell-command-to-string "/home/chris/.local/bin/envy exec brossa treefmt")))
+  (message "%s" (shell-command-to-string "/Users/chris/Work/chrisdone-artificial/brossa-docker/envy.sh treefmt")))
 
 (setq-default mode-line-end-spaces nil)
 

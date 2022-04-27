@@ -92,8 +92,12 @@
 
 (defun hiedb-point-defs (module line column)
   "Get definitions of the identifier at the given location."
-  (let* ((output (hiedb-call "point-defs" module (number-to-string line) (number-to-string column)))
-         (lines (split-string output "\n" t))
+  (let* ((output (hiedb-call "point-defs" module (number-to-string line) (number-to-string column))))
+    (hiedb-parse-defs output)))
+
+(defun hiedb-parse-defs (output)
+  "Parse the definitions output from hiedb."
+  (let* ((lines (split-string output "\n" t))
          (locations
           (remove-if-not #'identity
                          (mapcar (lambda (line)
@@ -128,6 +132,10 @@
                            t)
              "\n"))
 
+(defun hiedb-ident-at-point-defs ()
+  "Get the definition of the ident at point."
+  (hiedb-parse-defs (hiedb-call "name-def" (haskell-ident-at-point))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Utils
 
@@ -153,7 +161,11 @@
 (defun hiedb-goto-def ()
   "Jump to the definition of thing at point."
   (interactive)
-  (let* ((locations (hiedb-call-by-point 'hiedb-point-defs))
+  (let* ((locations
+          (condition-case nil
+              (hiedb-call-by-point 'hiedb-point-defs)
+            (error
+             (hiedb-ident-at-point-defs))))
          (location (car locations)))
     (when location
       (when (fboundp 'xref-push-marker-stack) ;; Emacs 25

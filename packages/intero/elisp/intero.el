@@ -2521,11 +2521,18 @@ You can always run M-x intero-restart to make it try again.
 
 (defun intero-read-buffer ()
   "In the process buffer, we read what's in it."
-  (let ((len (buffer-size)))
-    (with-current-buffer (window-buffer)
-      (when intero-mode
-        (setq intero-lighter (format " Intero-%x" len))
-        (force-mode-line-update))))
+  (let ((progress (save-excursion
+                    (goto-char (point-max))
+                    (when (search-backward-regexp "^\\[ *\\([0-9]+\\) of *\\([0-9]+\\)"
+                                                  nil
+                                                  t
+                                                  1)
+                      (format "%s/%s" (match-string 1) (match-string 2))))))
+    (when progress
+      (with-current-buffer (window-buffer)
+        (when intero-mode
+          (setq intero-lighter (format " Intero:(%s)" progress))
+          (force-mode-line-update)))))
   (let ((repeat t))
     (while repeat
       (setq repeat nil)

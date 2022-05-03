@@ -2356,7 +2356,7 @@ Uses the default stack config file, or STACK-YAML file if given."
       (set-process-sentinel process 'intero-sentinel)
       (process-send-string process (format ":set -DSTACK_ROOT=%s\n" (intero-project-root)))
       (process-send-string process ":set prompt \"\\4\"\n")
-      (process-send-string process ":set -fbyte-code\n")
+      (process-send-string process ":set -fbyte-code -Wwarn\n")
       (process-send-string process ":set -fdiagnostics-color=never\n")
       (process-send-string process ":set -fwrite-ide-info -hiedir=.hie")
       buffer)))

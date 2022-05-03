@@ -2355,10 +2355,10 @@ Uses the default stack config file, or STACK-YAML file if given."
              (intero-read-buffer)))))
       (set-process-sentinel process 'intero-sentinel)
       (process-send-string process (format ":set -DSTACK_ROOT=%s\n" (intero-project-root)))
-      (process-send-string process ":set -fdiagnostics-color=never\n")
-      (process-send-string process ":set -fwrite-ide-info -hiedir=.hie")
       (process-send-string process ":set prompt \"\\4\"\n")
       (process-send-string process ":set -fbyte-code\n")
+      (process-send-string process ":set -fdiagnostics-color=never\n")
+      (process-send-string process ":set -fwrite-ide-info -hiedir=.hie")
       buffer)))
 
 (defun intero-start-piped-process (buffer targets stack-yaml)
@@ -2521,6 +2521,11 @@ You can always run M-x intero-restart to make it try again.
 
 (defun intero-read-buffer ()
   "In the process buffer, we read what's in it."
+  (let ((len (buffer-size)))
+    (with-current-buffer (window-buffer)
+      (when intero-mode
+        (setq intero-lighter (format " Intero-%x" len))
+        (force-mode-line-update))))
   (let ((repeat t))
     (while repeat
       (setq repeat nil)

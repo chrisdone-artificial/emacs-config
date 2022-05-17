@@ -168,6 +168,7 @@
              (hiedb-ident-at-point-defs))))
          (location (car locations)))
     (when location
+      (message "hiedb: Going to location: %S" location)
       (when (fboundp 'xref-push-marker-stack) ;; Emacs 25
         (xref-push-marker-stack))
       (find-file (hiedb-module-filepath (plist-get location :module)))

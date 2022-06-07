@@ -2609,6 +2609,7 @@ never modify it.")
   `(magit-with-section (section ,(car arglist)
                                 ',(car arglist)
                                 ,(cadr arglist) t)
+     (message "magit-cmd-insert-section: %S %S" ,program (list ,@args))
      (apply #'process-file ,program nil (list t nil) nil
             (magit-flatten-onelevel (list ,@args)))
      (unless (eq (char-before) ?\n)
@@ -3294,6 +3295,7 @@ Run Git in the root of the current repository.
 
 (defun magit-git-exit-code (&rest args)
   "Execute Git with ARGS, returning its exit code."
+  (message "calling magit-git-exit-code: %S" args)
   (apply #'process-file magit-git-executable nil nil nil
          (append magit-git-standard-options
                  (magit-flatten-onelevel args))))
@@ -3310,6 +3312,7 @@ Run Git in the root of the current repository.
   "Execute Git with ARGS, returning the first line of its output.
 If there is no output return nil.  If the output begins with a
 newline return an empty string."
+  (message "calling magit-git-string: %S" args)
   (with-temp-buffer
     (apply #'process-file magit-git-executable nil (list t nil) nil
            (append magit-git-standard-options
@@ -3334,6 +3337,7 @@ string \"false\", otherwise return nil."
 
 (defun magit-git-insert (&rest args)
   "Execute Git with ARGS, inserting its output at point."
+  (message "magit-git-insert: %S" args)
   (apply #'process-file magit-git-executable nil (list t nil) nil
          (append magit-git-standard-options
                  (magit-flatten-onelevel args))))
@@ -3342,6 +3346,7 @@ string \"false\", otherwise return nil."
   "Execute Git with ARGS, returning its output as a list of lines.
 Empty lines anywhere in the output are omitted."
   (with-temp-buffer
+    (message "magit-git-lines: %S" args)
     (apply #'process-file magit-git-executable nil (list t nil) nil
            (append magit-git-standard-options
                    (magit-flatten-onelevel args)))
@@ -3381,6 +3386,7 @@ prepended to ARGS.
 
 Process output goes into a new section in a buffer specified by
 variable `magit-process-buffer-name'."
+  (message "magit-call-git")
   (apply #'magit-call-process magit-git-executable
          (append magit-git-standard-options args)))
 
@@ -3485,6 +3491,7 @@ the current repository are reverted if `magit-auto-revert-mode'
 is active.
 
 See `magit-start-process' for more information."
+  (message "magit-start-git")
   (apply #'magit-start-process magit-git-executable input
          (append magit-git-standard-options
                  (magit-process-quote-arguments args))))

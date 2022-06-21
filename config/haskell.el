@@ -935,26 +935,24 @@ preserved, although placement may be funky."
   (intero-async-call 'backend (format ":l %s" (buffer-file-name)))
   (flycheck-buffer))
 
-(defun intero-load-open-files ()
+(defun intero-insert-open-files ()
   (interactive)
-  (intero-async-call 'backend (format ":l %s" (mapconcat #'identity (intero-get-all-haskell-buffers) " ")))
-  (flycheck-buffer))
+  (insert (mapconcat #'identity (intero-get-all-haskell-buffers) " ")))
 
-;; This would work, but readline spits out ^G (BELL) 1024 times, the line length tested is 1811.
-;; (defun intero-get-all-haskell-buffers ()
-;;   (let ((root (intero-project-root)))
-;;     (mapcar
-;;      (lambda (buffer)
-;;        (dired-make-relative
-;;         (buffer-file-name buffer)
-;;         root))
-;;      (remove-if-not
-;;       (lambda (buffer)
-;;         (and
-;;          (buffer-local-value 'intero-mode buffer)
-;;          (buffer-file-name buffer)
-;;          (file-exists-p (buffer-file-name buffer))
-;;          (buffer-local-value 'intero-project-root buffer)
-;;          (string= (buffer-local-value 'intero-project-root buffer)
-;;                   root)))
-;;       (buffer-list)))))
+(defun intero-get-all-haskell-buffers ()
+  (let ((root (intero-project-root)))
+    (mapcar
+     (lambda (buffer)
+       (dired-make-relative
+        (buffer-file-name buffer)
+        root))
+     (remove-if-not
+      (lambda (buffer)
+        (and
+         (buffer-local-value 'intero-mode buffer)
+         (buffer-file-name buffer)
+         (file-exists-p (buffer-file-name buffer))
+         (buffer-local-value 'intero-project-root buffer)
+         (string= (buffer-local-value 'intero-project-root buffer)
+                  root)))
+      (buffer-list)))))

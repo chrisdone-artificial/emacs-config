@@ -840,14 +840,14 @@ preserved, although placement may be funky."
   (interactive)
   (let ((hindent-process-path
          (ido-completing-read "Formatter: "
-                              (list "/opt/hindent-5.3.1" "/opt/hindent-ormolu"))))
+                              (list "/opt/hindent-5.3.2" "/opt/hindent-ormolu"))))
     (call-interactively 'hindent-reformat-decl)))
 
 (defun hindent-reformat-region-via ()
   (interactive)
   (let ((hindent-process-path
          (ido-completing-read "Formatter: "
-                              (list "/opt/hindent-5.3.1" "/opt/hindent-ormolu"))))
+                              (list "/opt/hindent-5.3.2" "/opt/hindent-ormolu"))))
     (call-interactively 'hindent-reformat-region)))
 
 (defun hindent/reformat-decl (u)

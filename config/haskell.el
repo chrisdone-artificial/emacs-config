@@ -929,3 +929,8 @@ preserved, although placement may be funky."
 
 (defun hiedb-bin ()
   "/Users/chris/Work/chrisdone-artificial/brossa-docker/hiedb.sh")
+
+(defun intero-load-this-file ()
+  (interactive)
+  (intero-async-call 'backend (format ":l %s" (buffer-file-name)))
+  (flycheck-buffer))

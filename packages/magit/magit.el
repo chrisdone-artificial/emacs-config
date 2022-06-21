@@ -2609,7 +2609,7 @@ never modify it.")
   `(magit-with-section (section ,(car arglist)
                                 ',(car arglist)
                                 ,(cadr arglist) t)
-     (message "magit-cmd-insert-section: %S %S" ,program (list ,@args))
+     (when magit-debug-mode (message "magit-cmd-insert-section: %S %S" ,program (list ,@args)))
      (apply #'process-file ,program nil (list t nil) nil
             (magit-flatten-onelevel (list ,@args)))
      (unless (eq (char-before) ?\n)
@@ -2726,13 +2726,13 @@ never modify it.")
   (let ((next (magit-find-section-after (point))))
     (if next
         (magit-goto-section next)
-      (message "No next section"))))
+      (when magit-debug-mode (message "No next section")))))
 
 (defun magit-goto-previous-section ()
   "Go to the previous section."
   (interactive)
   (if (eq (point) 1)
-      (message "No previous section")
+      (when magit-debug-mode (message "No previous section"))
     (magit-goto-section (magit-find-section-before (point)))))
 
 (defun magit-goto-parent-section ()
@@ -2785,7 +2785,7 @@ never modify it.")
   (let ((sec (magit-find-section path magit-root-section)))
     (if sec
         (goto-char (magit-section-beginning sec))
-      (message "No such section"))))
+      (when magit-debug-mode (message "No such section")))))
 
 (defmacro magit-define-section-jumper (sym title)
   "Define an interactive function to go to section SYM.
@@ -3295,7 +3295,7 @@ Run Git in the root of the current repository.
 
 (defun magit-git-exit-code (&rest args)
   "Execute Git with ARGS, returning its exit code."
-  (message "calling magit-git-exit-code: %S" args)
+  (when magit-debug-mode (message "magit-git-exit-code: %S" args))
   (apply #'process-file magit-git-executable nil nil nil
          (append magit-git-standard-options
                  (magit-flatten-onelevel args))))
@@ -3312,16 +3312,20 @@ Run Git in the root of the current repository.
   "Execute Git with ARGS, returning the first line of its output.
 If there is no output return nil.  If the output begins with a
 newline return an empty string."
-  (message "calling magit-git-string: %S" args)
-  (with-temp-buffer
-    (apply #'process-file magit-git-executable nil (list t nil) nil
-           (append magit-git-standard-options
-                   (magit-flatten-onelevel args)))
-    (unless (= (point-min) (point-max))
-      (goto-char (point-min))
-      (buffer-substring-no-properties
-       (line-beginning-position)
-       (line-end-position)))))
+  (when magit-debug-mode (message "magit-git-string: %S" args))
+  (let* ((key (apply #'magit-cache-key args))
+         (value (magit-cache-get key)))
+    (if value
+        value
+      (with-temp-buffer
+        (apply #'process-file magit-git-executable nil (list t nil) nil
+               (append magit-git-standard-options
+                       (magit-flatten-onelevel args)))
+        (unless (= (point-min) (point-max))
+          (goto-char (point-min))
+          (buffer-substring-no-properties
+           (line-beginning-position)
+           (line-end-position)))))))
 
 (defun magit-git-true (&rest args)
   "Execute Git with ARGS, returning t if it prints \"true\".
@@ -3337,7 +3341,7 @@ string \"false\", otherwise return nil."
 
 (defun magit-git-insert (&rest args)
   "Execute Git with ARGS, inserting its output at point."
-  (message "magit-git-insert: %S" args)
+  (when magit-debug-mode (message "magit-git-insert: %S" args))
   (apply #'process-file magit-git-executable nil (list t nil) nil
          (append magit-git-standard-options
                  (magit-flatten-onelevel args))))
@@ -3346,7 +3350,7 @@ string \"false\", otherwise return nil."
   "Execute Git with ARGS, returning its output as a list of lines.
 Empty lines anywhere in the output are omitted."
   (with-temp-buffer
-    (message "magit-git-lines: %S" args)
+    (when magit-debug-mode (message "magit-git-lines: %S" args))
     (apply #'process-file magit-git-executable nil (list t nil) nil
            (append magit-git-standard-options
                    (magit-flatten-onelevel args)))
@@ -3386,7 +3390,7 @@ prepended to ARGS.
 
 Process output goes into a new section in a buffer specified by
 variable `magit-process-buffer-name'."
-  (message "magit-call-git")
+  (when magit-debug-mode (message "magit-call-git"))
   (apply #'magit-call-process magit-git-executable
          (append magit-git-standard-options args)))
 
@@ -3491,7 +3495,7 @@ the current repository are reverted if `magit-auto-revert-mode'
 is active.
 
 See `magit-start-process' for more information."
-  (message "magit-start-git")
+  (when magit-debug-mode (message "magit-start-git %S %S" input args))
   (apply #'magit-start-process magit-git-executable input
          (append magit-git-standard-options
                  (magit-process-quote-arguments args))))
@@ -4057,17 +4061,18 @@ tracked in the current repository."
   (interactive (list (current-buffer)))
   (unless buffer
     (setq buffer (current-buffer)))
-  (with-current-buffer buffer
-    (when (derived-mode-p 'magit-mode)
-      (magit-mode-refresh-buffer buffer))
-    (let (status)
-      (when (and (not (eq major-mode 'magit-status-mode))
-                 (setq status (magit-mode-get-buffer
-                               magit-status-buffer-name
-                               'magit-status-mode)))
-        (magit-mode-refresh-buffer status))))
-  (when magit-auto-revert-mode
-    (magit-revert-buffers)))
+  (let ((magit-cache-hash (make-hash-table :test 'equal)))
+    (with-current-buffer buffer
+      (when (derived-mode-p 'magit-mode)
+        (magit-mode-refresh-buffer buffer))
+      (let (status)
+        (when (and (not (eq major-mode 'magit-status-mode))
+                   (setq status (magit-mode-get-buffer
+                                 magit-status-buffer-name
+                                 'magit-status-mode)))
+          (magit-mode-refresh-buffer status))))
+    (when magit-auto-revert-mode
+      (magit-revert-buffers))))
 
 (defun magit-refresh-all ()
   "Refresh all buffers belonging to the current repository.
@@ -7812,6 +7817,26 @@ init file:
 
 (define-obsolete-variable-alias 'magit-quote-curly-braces
   'magit-process-quote-curly-braces "2.0.0")
+
+(defvar magit-cache-hash nil)
+(defun magit-cache-key (&rest args)
+  (mapconcat #'identity args "\n"))
+(defun magit-cache-get (key)
+  (when magit-debug-mode
+    (message "magit-cache-get: %S" key))
+  (if magit-cache-hash
+      (gethash key magit-cache-hash)
+    (progn
+      (message "No magit-cache-hash!")
+      nil)))
+(defun magit-cache-set (key value)
+  (if magit-cache-hash
+      (puthash key value magit-cache-hash)
+    (progn
+      (message "No magit-cache-hash!")
+      nil)))
+
+(defvar magit-debug-mode nil)
 
 (provide 'magit)
 

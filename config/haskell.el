@@ -935,6 +935,11 @@ preserved, although placement may be funky."
   (intero-async-call 'backend (format ":l %s" (buffer-file-name)))
   (flycheck-buffer))
 
+(defun intero-run-dot-ghci ()
+  (interactive)
+  (intero-async-call 'backend ":script .ghci")
+  (flycheck-buffer))
+
 (defun intero-insert-open-files ()
   (interactive)
   (insert (mapconcat #'identity (intero-get-all-haskell-buffers) " ")))

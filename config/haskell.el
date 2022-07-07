@@ -561,12 +561,18 @@ import Data.Sequence (Seq)
     (upcase-initials-region (point-min) (point-max))
     (buffer-string)))
 
+(defun haskell-modules-init-sqlite ()
+  (interactive)
+  (shell-command-to-string
+   "sqlite3 -noheader ~/.haskell-modules.sqlite3 'create table mod (module text not null unique, uses int not null default 0);'"))
+
 (defun haskell-modules-list ()
   (let* ((stack-root (intero-project-root))
          (modules
           (split-string
-           (concat (shell-command-to-string (format "for i in $(fd '.*.cabal' %s); do cabal-info --cabal-file $i exposed-modules; done" stack-root))
-                   (shell-command-to-string "sqlite3 -noheader ~/.haskell-modules.sqlite3 'select module from mod order by uses desc, length(module) asc, module asc;' | tail -n +2"))
+           (concat
+            ;; (shell-command-to-string (format "for i in $(fd '.*.cabal' %s); do cabal-info --cabal-file $i exposed-modules; done" stack-root)) ;; don't have cabal-info here
+            (shell-command-to-string "sqlite3 -noheader ~/.haskell-modules.sqlite3 'select module from mod order by uses desc, length(module) asc, module asc;' | tail -n +2"))
            "\n" t)))
     modules))
 
@@ -576,12 +582,16 @@ import Data.Sequence (Seq)
         (if (string-match "^import" chosen)
             chosen
           (haskell-capitalize-module chosen)))
-    (let ((module (haskell-capitalize-module
-                   (haskell-complete-module-read
-                    "Module: "
-                    (append (mapcar #'car haskell-import-mapping)
-                            (haskell-modules-list))))))
-      (shell-command-to-string (format "sqlite3 ~/.haskell-modules.sqlite3 \"update mod set uses = uses + 1 where module = '%s'\";" module))
+    (let* ((module (haskell-capitalize-module
+                    (haskell-complete-module-read
+                     "Module: "
+                     (append (mapcar #'car haskell-import-mapping)
+                             (haskell-modules-list)))))
+           (missing (string= ""
+                             (shell-command-to-string (format "sqlite3 ~/.haskell-modules.sqlite3 \"select module from mod where module = '%s'\";" module)))))
+      (if missing
+          (shell-command-to-string (format "sqlite3 ~/.haskell-modules.sqlite3 \"insert into mod (module, uses) values ('%s', 1)\";" module))
+        (shell-command-to-string (format "sqlite3 ~/.haskell-modules.sqlite3 \"update mod set uses = uses + 1 where module = '%s'\";" module)))
       module)))
 
 ;; [bat,exa,fd,procs,ytop,rg] $ sqlite3 ~/.haskell-modules.sqlite3

@@ -619,8 +619,9 @@ to stylish-haskell."
                            (concat chosen "\n")
                          (concat "import " chosen "\n"))))))
       (insert module))
-    (haskell-sort-imports)
-    (haskell-align-imports)))
+    ;; (haskell-sort-imports)
+    ;; (haskell-align-imports)
+    ))
 
 (define-key haskell-mode-map (kbd "C-i") 'haskell-fast-add-import)
 (define-key shm-map (kbd "C-i") 'haskell-fast-add-import)

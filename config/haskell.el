@@ -934,8 +934,7 @@ preserved, although placement may be funky."
         (with-current-buffer (get-buffer-create (format "*hiedb:%s*" (hiedb-root)))
           (shell (current-buffer))
           (goto-char (point-max))
-          (insert "/Users/chris/Work/chrisdone-artificial/brossa-docker/envy.sh" " "
-                  "watchexec --watch .hie/ --debounce 10000 --exts hie --on-busy-update restart -- hiedb -D .hie-db index .hie/ --no-color") ; --quiet
+          (insert "sh /Users/chris/Work/artificialio/chris/hiedb-watch.sh")
           (call-interactively (key-binding (kbd "RET"))))))))
 
 (defun hiedb-bin ()

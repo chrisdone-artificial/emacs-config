@@ -33,7 +33,7 @@
   "The REPL's buffer.")
 
 (defcustom watchexec-bin-path
-  "/home/chris/.nix-profile/bin/watchexec"
+  "/opt/watchexec-1.20.4"
   "Binary path.")
 
 (defun watchexec-stop ()

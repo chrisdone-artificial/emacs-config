@@ -5762,6 +5762,9 @@ undefined push without specifing the remote branch explicitly.
 
 Also see option `magit-set-upstream-on-push'."
   (interactive "P")
+  (when (or (string= (magit-get-current-branch) "master")
+            (string= (magit-get-current-branch) "main"))
+    (user-error "Woops! You tried to push to master. Ignoring."))
   (let* ((branch (or (magit-get-current-branch)
                      (user-error "Don't push a detached head.  That's gross")))
          (auto-remote (magit-get-remote branch))

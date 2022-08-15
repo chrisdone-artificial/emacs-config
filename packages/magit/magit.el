@@ -1,3 +1,22 @@
+(defvar magit-debug-mode nil)
+(defvar magit-cache-hash nil)
+(defun magit-cache-key (&rest args)
+  (mapconcat #'identity args "\n"))
+(defun magit-cache-get (key)
+  (when magit-debug-mode
+    (message "magit-cache-get: %S" key))
+  (if magit-cache-hash
+      (gethash key magit-cache-hash)
+    (progn
+      (message "No magit-cache-hash!")
+      nil)))
+(defun magit-cache-set (key value)
+  (if magit-cache-hash
+      (puthash key value magit-cache-hash)
+    (progn
+      (message "No magit-cache-hash!")
+      nil)))
+
 ;;; magit.el --- control Git from Emacs
 
 ;; Copyright (C) 2008-2014  The Magit Project Developers
@@ -7821,25 +7840,6 @@ init file:
 (define-obsolete-variable-alias 'magit-quote-curly-braces
   'magit-process-quote-curly-braces "2.0.0")
 
-(defvar magit-cache-hash nil)
-(defun magit-cache-key (&rest args)
-  (mapconcat #'identity args "\n"))
-(defun magit-cache-get (key)
-  (when magit-debug-mode
-    (message "magit-cache-get: %S" key))
-  (if magit-cache-hash
-      (gethash key magit-cache-hash)
-    (progn
-      (message "No magit-cache-hash!")
-      nil)))
-(defun magit-cache-set (key value)
-  (if magit-cache-hash
-      (puthash key value magit-cache-hash)
-    (progn
-      (message "No magit-cache-hash!")
-      nil)))
-
-(defvar magit-debug-mode nil)
 
 (provide 'magit)
 

@@ -971,7 +971,7 @@ To be added to `flymake-init-create-temp-buffer-copy'."
   (interactive)
   (let ((col (current-column)))
     (haskell-sort-imports)
-    (haskell-align-imports)
+    ;; (haskell-align-imports)
     (goto-char (+ (line-beginning-position)
                   col))))
 

@@ -764,7 +764,7 @@ running context across :load/:reloads in Intero."
     (let* ((file-buffer (current-buffer)))
       (intero-async-call
        'backend
-       ":r"
+       (concat ":load " (buffer-file-name file-buffer))
        (list :cont cont
              :file-buffer file-buffer
              :checker checker)
@@ -2356,7 +2356,7 @@ Uses the default stack config file, or STACK-YAML file if given."
       (set-process-sentinel process 'intero-sentinel)
       (process-send-string process (format ":set -DSTACK_ROOT=%s\n" (intero-project-root)))
       (process-send-string process ":set prompt \"\\4\"\n")
-      (process-send-string process ":set -fbyte-code -Wwarn\n")
+      (process-send-string process ":set -fobject-code\n")
       (process-send-string process ":set -hiedir=.hie -fwrite-ide-info\n")
       (process-send-string process ":set -fdiagnostics-color=never\n")
       buffer)))
@@ -2366,6 +2366,7 @@ Uses the default stack config file, or STACK-YAML file if given."
 Uses the specified TARGETS if supplied.
 Uses the default stack config file, or STACK-YAML file if given."
   (let* ((options
+          (list "--no-load")
           ;; (intero-make-options-list
           ;;  (intero-executable-path stack-yaml)
           ;;  (or targets
@@ -2401,7 +2402,7 @@ Uses the default stack config file, or STACK-YAML file if given."
           program-args)))
 
 (defun intero-tool ()
-  "cabal")
+  "stack")
 
 (defun intero-flycheck-buffer ()
   "Run flycheck in the buffer.

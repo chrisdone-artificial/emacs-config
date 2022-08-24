@@ -398,8 +398,8 @@ prefix argument."
 (global-set-key (kbd "C-h") 'previous-line)
 
 (global-set-key (kbd "C-,") 'quickjump-forward)
-;(define-key input-decode-map [?\C-m] [C-m])
-;(global-set-key (kbd "C-m") 'quickjump-back)
+                                        ;(define-key input-decode-map [?\C-m] [C-m])
+                                        ;(global-set-key (kbd "C-m") 'quickjump-back)
 (global-set-key (kbd "RET") 'newline)
 
 (defun avoid-this-key ()
@@ -522,7 +522,15 @@ prefix argument."
   (interactive)
   (if (comint-after-pmark-p)
       (call-interactively 'comint-send-input)
-    (goto-char (point-max))))
+    (let ((file-name-at-point (ffap-file-at-point)))
+      (if file-name-at-point
+          (let ((line (save-excursion
+                        (forward-char (length file-name-at-point))
+                        (when (looking-at ":\\([0-9]+\\)")
+                          (string-to-number (match-string-no-properties 1))))))
+            (find-file-other-window file-name-at-point)
+            (when line (goto-line line)))
+        (goto-char (point-max))))))
 
 (defun my-comint-prev ()
   "Less silly return key for comint-mode."

@@ -529,7 +529,9 @@ prefix argument."
                         (when (looking-at ":\\([0-9]+\\)")
                           (string-to-number (match-string-no-properties 1))))))
             (find-file-other-window file-name-at-point)
-            (when line (goto-line line)))
+            (when line
+              (goto-line line)
+              (back-to-indentation)))
         (goto-char (point-max))))))
 
 (defun my-comint-prev ()

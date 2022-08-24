@@ -220,7 +220,11 @@ the cursor position happened."
     ("RIO" . "RIO")))
 
 (setq haskell-import-mapping
-      '(("Data.Attoparsec.Char8" . "import qualified Data.Attoparsec.Char8 as Atto8
+      '(("Prelude" . "import qualified Prelude
+")
+        ("Aeson" . "import qualified Data.Aeson as Aeson
+")
+        ("Data.Attoparsec.Char8" . "import qualified Data.Attoparsec.Char8 as Atto8
 ")
         ("Data.Text" . "import qualified Data.Text as T
 import Data.Text (Text)

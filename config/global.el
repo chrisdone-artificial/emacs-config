@@ -1061,6 +1061,14 @@ prefix argument."
 
 (defun top ()
   (interactive)
-  (watch-shell-other-window "docker exec  brossa top -b -n 1 -w 512"))
+  (watch-shell-other-window "docker exec brossa top -b -n 1 -w 512"))
+
+(defun kill-docker-at-point (p)
+  "Kill the process at point by ID using docker with signal P."
+  (interactive "P")
+  (let* ((bounds (bounds-of-thing-at-point 'symbol))
+        (pid (buffer-substring-no-properties (car bounds)
+                                             (cdr bounds))))
+   (shell-command-to-string (format "docker exec brossa kill -%s %s" (if p (number-to-string p) "TERM") pid))))
 
 (provide 'global)

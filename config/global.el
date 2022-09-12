@@ -1059,4 +1059,8 @@ prefix argument."
 (setq frame-resize-pixelwise t)
 (toggle-frame-maximized)
 
+(defun top ()
+  (interactive)
+  (watch-shell-other-window "docker exec  brossa top -b -n 1 -w 512"))
+
 (provide 'global)

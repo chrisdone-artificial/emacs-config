@@ -1071,4 +1071,12 @@ prefix argument."
                                              (cdr bounds))))
    (shell-command-to-string (format "docker exec brossa kill -%s %s" (if p (number-to-string p) "TERM") pid))))
 
+(defun proc-docker-at-point ()
+  "Open /proc/$id from the $id at point, within the docker container."
+  (interactive)
+  (let* ((bounds (bounds-of-thing-at-point 'symbol))
+        (pid (buffer-substring-no-properties (car bounds)
+                                             (cdr bounds))))
+    (find-file (format "/docker:chris@brossa:/proc/%s" pid))))
+
 (provide 'global)

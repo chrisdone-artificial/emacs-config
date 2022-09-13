@@ -1079,4 +1079,10 @@ prefix argument."
                                              (cdr bounds))))
     (find-file (format "/docker:chris@brossa:/proc/%s" pid))))
 
+(defun copy-git-filename ()
+  (interactive)
+  (let ((name (git-link--relative-filename)))
+    (kill-new name)
+    (message "%s" name)))
+
 (provide 'global)

@@ -306,14 +306,15 @@ Goes backward if ARG is negative; error if CHAR not found."
             for buf in buffers
             do (bury-buffer buf)))))
 
-(defun save-window-config ()
-  "Saves the current window configuration."
+(defun save-excursions ()
+  "Saves the current window configuration and position."
   (interactive)
-  (message "Entering recursive window configuration ...")
+  (message "Entering recursive edit ...")
   (let ((buffers (buffer-list)))
     (save-window-excursion
-      (recursive-edit)
-      (message "Restored window configuration."))
+      (save-excursion
+        (recursive-edit))
+      (message "Restored state."))
     (reorder-buffer-list buffers)))
 
 (defun echo-mode ()
@@ -1037,7 +1038,7 @@ prefix argument."
                    (call-process-region
                     (point-min)
                     (point-max)
-                    "jq"
+                    "/opt/homebrew/bin/jq"
                     t
                     t
                     nil

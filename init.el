@@ -62,7 +62,8 @@
     dogears
     go-mode
     hiedb
-    art-mode)
+    art-mode
+    watch-mode)
   "Packages whose location follows the
   packages/package-name/package-name.el format.")
 

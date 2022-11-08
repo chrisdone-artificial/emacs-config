@@ -1,12 +1,6 @@
-;;; prodigy service example ssh tunnels
-;; This example uses `prodigy-callback' in a tag definition to make it
-;; easy to define new tunnels: The generic :ARGS property of the tag
-;; accesses the service definition (lower in the hierarchy!) to get
-;; the tunnel specific data (property :TUNNEL) as property list and
-;; pass that to the helper `my-build-tunnel-args'.
-;;
-;; This code uses `getf' from `cl.el', an autoloaded function; if you
-;; don't like that, replace it with `plist-get'
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; SSH
+
 (defun my-build-tunnel-args (args)
   "Assemble the ssh tunnel argument list."
   `("-v" ;; allows us to parse for the ready message
@@ -19,21 +13,6 @@
     ,(getf args :host)))    ;; the remote host
 
 (prodigy-define-tag
-  :name 'dockerd
-  :command "/home/chris/.nix-profile/bin/dockerd"
-  :cwd (getenv "HOME")
-  :ready-message "Daemon has completed initialization")
-
-(prodigy-define-service
-  :name "dockerd"
-  :tags '(dockerd)
-  :sudo t)
-
-(defun docker-enable-socket ()
-  (interactive)
-  (shell-command-to-string "sudo setfacl --modify user:$USER:rw /var/run/docker.sock"))
-
-(prodigy-define-tag
   :name 'ssh-tunnel
   :command "ssh"
   :cwd (getenv "HOME")
@@ -42,47 +21,44 @@
            (getf service :tunnel)))
   :ready-message "debug1: Entering interactive session.")
 
-(prodigy-define-tag
-  :name 'inflex-client-ide
-  :command "stack"
-  :cwd "/home/chris/Work/skyabove/inflex/inflex-client"
-  :args '("build" "purescript" "--exec" "purs ide server")
-  :ready-message "")
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Postgres service
 
-(prodigy-define-service
-  :name "inflex-client-ide"
-  :tags '(inflex-client-ide))
-
-(prodigy-define-tag
-  :name 'inflex-client-slow-bundler
-  :command "stack"
-  :cwd "/home/chris/Work/skyabove/inflex/inflex-client"
-  :args '("exec" "watchexec" "-w" "--exts" "purs" "-w" "src" "--" "bash" "./bundle-full.sh")
-  :ready-message "")
-
-(prodigy-define-service
-  :name "inflex-client-slow-bundler"
-  :tags '(inflex-client-slow-bundler))
+(defun my-build-pg-args (args)
+  "Assemble the docker pg argument list."
+  `("run"
+    "--name"
+    ,(getf args :container-name)
+    "-e"
+    ,(format "POSTGRES_PASSWORD=%s" (getf args :pg-pass))
+    "-e"
+    ,(format "POSTGRES_USER=%s" (getf args :pg-user))
+    "-e"
+    ,(format "POSTGRES_DB=%s" (getf args :pg-db))
+    "--rm"
+    "-p"
+    ,(format "%d:5432" (getf args :pg-port))
+    "postgres:12.12"))
 
 (prodigy-define-tag
-  :name 'inflex-client-fast-bundler
-  :command "watchexec"
-  :cwd "/home/chris/Work/skyabove/inflex/inflex-client"
-  :args '("-p" "-w" "--exts" "js" "-w" "output" "--" "bash" "bundle-fast.sh")
-  :ready-message "")
+  :name 'postgres
+  :command "/usr/local/bin/docker"
+  :cwd (getenv "HOME")
+  :args (prodigy-callback (service)
+          (my-build-pg-args
+           (getf service :config)))
+  :ready-message "listening on IPv4 address")
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Services
 
 (prodigy-define-service
-  :name "inflex-client-fast-bundler"
-  :tags '(inflex-client-fast-bundler))
-
-
-;; Example:
-;;
-;; (prodigy-define-service
-;;   :name "my-forward"
-;;   :tags '(ssh-tunnel)
-;;   :tunnel (list
-;;            :localport  "38161"
-;;            :tunnel-ip  "127.0.0.1"
-;;            :tunnel-port  "38161"
-;;            :host  "some-host"))
+  :name "brossa-pg"
+  :tags '(postgres)
+  :config
+  (list
+   :container-name "brossa-postgres"
+   :pg-port 5432
+   :pg-user "brossa-test"
+   :pg-password "brossa-test"
+   :pg-db "brossa-test"))
